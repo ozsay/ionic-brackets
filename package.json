@@ -11,6 +11,10 @@
   ],
   "author": "Oz Sayag",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ozsay/ionic-brackets.git"
+  },
   "devDependencies": {
     "del": "^1.1.1",
     "gulp": "^3.8.10",
