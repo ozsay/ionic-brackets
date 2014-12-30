@@ -1,0 +1,26 @@
+{
+  "name": "ionic-brackets",
+  "version": "0.3.0",
+  "description": "A Brackets extension for developing mobile applications using Ionic framework",
+  "main": "main.js",
+  "keywords": [
+    "ionic",
+    "cordova",
+    "ngCordova",
+    "mobile"
+  ],
+  "author": "Oz Sayag",
+  "license": "MIT",
+  "devDependencies": {
+    "del": "^1.1.1",
+    "gulp": "^3.8.10",
+    "gulp-copy": "0.0.2",
+    "gulp-git": "^0.5.5",
+    "gulp-tap": "^0.1.3",
+    "gulp-zip": "^2.0.2",
+    "q": "^1.1.2"
+  },
+  "dependencies": {
+    "marked": "^0.3.2"
+  }
+}

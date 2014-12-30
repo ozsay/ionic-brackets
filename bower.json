@@ -1,0 +1,7 @@
+{
+  "name": "ionic-brackets",
+  "version": "0.3.0",
+  "dependencies": {
+    "ionicons": "~2.0.0"
+  }
+}

@@ -1,0 +1,101 @@
+#ionic-icon {
+    color: #BBBBBB;
+    font-size: 25px;
+}
+
+#ionic-icon.active {
+    color: #78B2F2;
+}
+
+.ionic-project-start-template {
+    margin-left: 85px;
+}
+
+.ionic-docs {
+    margin-left: 40px;
+}
+
+.ionic-docs:focus {
+    outline: none;
+}
+
+.ionic-docs-bar {
+    position: absolute;
+    right: 25px;
+    top: 10px;
+}
+
+.ionic-docs-icon {
+    font-size: 25px;
+    margin-left: 10px;
+}
+
+.scrollable {
+    max-height: 400px;
+    margin-right: 21px;
+    overflow-y: auto;
+    cursor: auto;
+    -webkit-user-select: text;
+}
+
+.scrollable p {
+    font-size: 14px;
+}
+
+.scrollable h4 {
+    padding-top: 10px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.scrollable h5 {
+    font-size: 16px;
+}
+
+.scrollable pre {
+    margin: 10px;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.scrollable pre code {
+    font-size: 13px;
+    color: #333;
+}
+
+.scrollable img {
+    max-width: 50%;
+    height: auto;
+}
+
+.scrollable:focus {
+    outline: none;
+}
+
+.scrollable table {
+  width: 100%;
+  max-width: 100%;
+  margin-bottom: 20px;
+}
+
+.scrollable table > thead > tr > th,
+.scrollable table > tbody > tr > td {
+    padding: 8px;
+    line-height: 1.5;
+    vertical-align: top;
+    border-top: 1px solid #ddd;
+    font-size: 14px;
+}
+
+.scrollable table > thead > tr > th {
+    vertical-align: bottom;
+    border-bottom: 2px solid #ddd;
+    text-align: left;
+    font-weight: bold;
+}
+
+.scrollable table > thead:first-child > tr:first-child > th {
+    border-top: 0;
+}
