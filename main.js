@@ -158,32 +158,6 @@ define(function (require, exports, module) {
         });
     }
     
-    function quickDocsProvider(hostEditor) {
-        var currentDoc = DocumentManager.getCurrentDocument();
-        var langId = hostEditor.getLanguageForSelection().getId();
-        var ionicDoc;
-        
-        if (langId !== "javascript" && langId !== "html") {
-            return null;
-        }
-        
-        var sel = hostEditor.getSelection();
-        
-        if (sel.start.line !== sel.end.line) {
-            return null;
-        }
-        
-        if (sel.start.ch < sel.end.ch) {
-            ionicDoc = currentDoc.getLine(sel.start.line).substring(sel.start.ch, sel.end.ch);
-        } else if (sel.start.ch > sel.end.ch) {
-            ionicDoc = currentDoc.getLine(sel.start.line).substring(sel.end.ch, sel.start.ch);
-        } else {
-            return null;
-        }
-        
-        return IonicDocs(hostEditor, ionicDoc);
-    }
-    
     // icon
     var $icon = $("<a>")
         .attr({
@@ -487,6 +461,66 @@ define(function (require, exports, module) {
     ProjectManager.on("beforeAppClose", function() {
         ionicServices.exec("destroy");
     });
+   
+    // Quick Docs
+    function getDirectiveName(hostEditor, pos) {
+        var token = hostEditor._codeMirror.getTokenAt(pos, true);
+        
+        if (token.string.trim().length === 0 || token.string === "<") {
+            token = hostEditor._codeMirror.getTokenAt({line: pos.line, ch: pos.ch + 1}, true);
+        }
+        
+        if (!(token.type == "tag" || token.type == "attribute")) {
+            return null;
+        }
+        
+        return token.string.replace(/\-\w/g, function(x){ return x.charAt(1).toUpperCase(); });
+    }
+    
+    function getOtherComponentName(hostEditor, pos) {
+        var token = hostEditor._codeMirror.getTokenAt(pos, true);
+        
+        if (token.type == "def" || token.type == "variable-2") {
+            return token.string;
+        } else if (token.type == null && token.string == ".") {
+            return getOtherComponentName(hostEditor, {line: pos.line, ch: pos.ch - 1});
+        } else if (token.type == "property") {
+            return getOtherComponentName(hostEditor, {line: pos.line, ch: token.start - 1});
+        } else {
+            return null;
+        }
+    }
+    
+    function quickDocsProvider(hostEditor) {
+        var currentDoc = DocumentManager.getCurrentDocument();
+        var langId = hostEditor.getLanguageForSelection().getId();
+        var ionicDoc;
+        
+        if (langId !== "javascript" && langId !== "html") {
+            return null;
+        }
+        
+        var sel = hostEditor.getSelection();
+        
+        if (sel.start.line !== sel.end.line) {
+            return null;
+        }
+        
+        if (sel.start.ch < sel.end.ch) {
+            ionicDoc = currentDoc.getLine(sel.start.line).substring(sel.start.ch, sel.end.ch);
+        } else if (sel.start.ch > sel.end.ch) {
+            ionicDoc = currentDoc.getLine(sel.start.line).substring(sel.end.ch, sel.start.ch);
+        } else if (langId == "html") {
+            ionicDoc = getDirectiveName(hostEditor, sel.start);
+        } else {
+            ionicDoc = getOtherComponentName(hostEditor, sel.start);
+        }
+        
+        if (ionicDoc == null)
+            return null;
+        
+        return IonicDocs(hostEditor, ionicDoc);
+    }
     
     EditorManager.registerInlineDocsProvider(quickDocsProvider);
 });

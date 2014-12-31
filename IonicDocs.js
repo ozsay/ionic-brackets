@@ -5,51 +5,83 @@ define(function (require, exports, module) {
         ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
         FileSystem      = brackets.getModule("filesystem/FileSystem"),
         template        = require('text!templates/IonicDocs.html'),
-        docs            = JSON.parse(require('text!docs/ngCordova/plugins.json')),
+        docs            = JSON.parse(require('text!docs/docs.json')),
         marked          = require("lib/marked"),
         docsPath        = ExtensionUtils.getModulePath(module) + "docs/";
     
     ExtensionUtils.loadStyleSheet(module, "css/ionic-brackets.css");
     ExtensionUtils.loadStyleSheet(module, "css/ionicons.css");
     
-    function createIonicDoc(hostEditor, possibleDocId) {
-        if (docs[possibleDocId] != null) {
-            var doc = docs[possibleDocId];
-            var deferred = new $.Deferred();
-            
-            if (doc.html != null) {
-                deferred.resolve(new IonicDocs(hostEditor, doc));
-            } else {
-                FileSystem.getFileForPath(docsPath + "ngCordova/" + doc.path + "/index.md")
-                .read(function(err, data) {
-                    if (err == null) {
-                        var renderer = new marked.Renderer();
-                        renderer._image = renderer.image;
-                        renderer.image = function(href, title, text) {
-                            href = docsPath + "ngCordova/" + doc.path + "/" + href;
-                            return renderer._image(href, title, text);
-                        };
+    function createNgCordovaDoc(hostEditor, doc) {
+        var deferred = new $.Deferred();
+        
+        if (doc.html != null) {
+            deferred.resolve(new IonicDocs(hostEditor, doc));
+        } else {
+            FileSystem.getFileForPath(docsPath + "ngCordova/" + doc.path + "/index.md")
+            .read(function(err, data) {
+                if (err == null) {
+                    var renderer = new marked.Renderer();
+                    renderer._image = renderer.image;
+                    renderer.image = function(href, title, text) {
+                        href = docsPath + "ngCordova/" + doc.path + "/" + href;
+                        return renderer._image(href, title, text);
+                    };
 
-                        doc.html = $(template);
-                        $(marked(data, { renderer: renderer })).appendTo(doc.html.find(".scrollable"));
+                    doc.html = $(template);
+                    $(marked(data, { renderer: renderer })).appendTo(doc.html.find(".scrollable"));
 
-                        if (doc.android == "true") 
-                            doc.html.find("#ionic-docs-bar").prepend('<i class="icon ion-social-android ionic-docs-icon"></i>');
-                        if (doc.ios == "true") 
-                            doc.html.find("#ionic-docs-bar").prepend('<i class="icon ion-social-apple ionic-docs-icon"></i>');
-                        doc.html.find("#ionic-docs-title").html(doc.name);
-                        doc.html.find("#ionic-docs-src").attr('href', doc.source);
-                        doc.html.find("#ionic-docs-official").attr('href', doc.officialDocs);
+                    var bar = doc.html.find("#ionic-docs-bar");
 
-                        deferred.resolve(new IonicDocs(hostEditor, doc));
-                    } else {
-                        deferred.reject();
-                    }
-                });
-            }
-            
-            return deferred.promise();
+                    if (doc.ios == "true") 
+                        $("<i>").attr({class: "icon ion-social-apple ionic-docs-icon"}).appendTo(bar);
+                    if (doc.android == "true") 
+                        $("<i>").attr({class: "icon ion-social-android ionic-docs-icon"}).appendTo(bar);
+
+                    $("<a>").attr({href: doc.source, class: "btn"}).text('Source').appendTo(bar);
+                    $("<a>").attr({href: doc.officialDocs, class: "btn"}).text('Official Docs').appendTo(bar);
+
+                    doc.html.find("#ionic-docs-title").html(doc.name);
+
+                    deferred.resolve(new IonicDocs(hostEditor, doc));
+                } else {
+                    deferred.reject();
+                }
+            });
         }
+        
+        return deferred.promise();
+    }
+    
+    function createIonicFrameworkDoc(hostEditor, doc) {
+        var deferred = new $.Deferred();
+        
+        if (doc.html != null) {
+            deferred.resolve(new IonicDocs(hostEditor, doc));
+        } else {
+            FileSystem.getFileForPath(docsPath + "ionic/" + doc.path + "/index.md")
+            .read(function(err, data) {
+                if (err == null) {
+                    doc.html = $(template);
+                    $(marked(data)).appendTo(doc.html.find(".scrollable"));
+
+                    doc.html.find("#ionic-docs-title").html("<small>" + doc.type + "</small> " + doc.title);
+
+                    deferred.resolve(new IonicDocs(hostEditor, doc));
+                } else {
+                    deferred.reject();
+                }
+            });
+        }
+        
+        return deferred.promise();
+    }
+    
+    function createIonicDoc(hostEditor, possibleDocId) {
+        if (docs.ngCordovaPlugins[possibleDocId] != null) 
+            return createNgCordovaDoc(hostEditor, docs.ngCordovaPlugins[possibleDocId]);
+        else if (docs.ionicDocs[possibleDocId] != null) 
+            return createIonicFrameworkDoc(hostEditor, docs.ionicDocs[possibleDocId]);
         else return null;
     }
     

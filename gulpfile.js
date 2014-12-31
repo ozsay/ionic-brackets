@@ -9,7 +9,10 @@ var del = require('del');
 var fs = require('fs');
 var path = require('path');
 
-var ngCordovaPlugins = {};
+var docs = {
+    ngCordovaPlugins: {},
+    ionicDocs: {}
+};
 
 gulp.task('default', ['completeDocs', 'copyFiles'], function() {
     return gulp.src('dist/**/*')
@@ -36,10 +39,10 @@ gulp.task('mktmp', function() {
 });
 
 gulp.task('clean', function (cb) {
-  del(['tmp', 'dist'], cb);
+    del(['tmp', 'dist'], cb);
 });
 
-gulp.task('cloneRepositories', ['mktmp'], function() {
+gulp.task('cloneNgCordova', ['mktmp'], function () {
     var deferred = Q.defer();
     
     git.clone('https://github.com/driftyco/ng-cordova',  {args: '-b gh-pages', cwd: 'tmp'}, function (err) {
@@ -50,7 +53,7 @@ gulp.task('cloneRepositories', ['mktmp'], function() {
     return deferred.promise;
 });
 
-gulp.task('prepareDocs', ['cloneRepositories'], function() {
+gulp.task('prepareNgCordova', ['cloneNgCordova'], function() {
     return gulp.src('tmp/ng-cordova/docs/plugins/*/*')
     .pipe(tap(function(file) {
         if (path.extname(file.path) === '.md') {
@@ -61,7 +64,6 @@ gulp.task('prepareDocs', ['cloneRepositories'], function() {
                 file.contents = file.contents.slice(start);
                 
                 var lines = data.split("---")[1].split("\r\n");
-                var pluginName;
                 var plugin = {}
                 var dir = path.dirname(file.path);
                 plugin.path = dir.substring(dir.lastIndexOf(path.sep) + 1);
@@ -71,8 +73,7 @@ gulp.task('prepareDocs', ['cloneRepositories'], function() {
                     
                     if (line.length > 0) {
                         if (line[0] == "plugin-name") {
-                            pluginName = line[1].trim();
-                            plugin.name = pluginName;
+                            plugin.name = line[1].trim();
                         } else if (line[0] == "source") {
                             plugin.source = line[1];
                         }  else if (line[0] == "official-docs") {
@@ -85,7 +86,7 @@ gulp.task('prepareDocs', ['cloneRepositories'], function() {
                     }
                 });
                 
-                ngCordovaPlugins[pluginName] = plugin;
+                docs.ngCordovaPlugins[plugin.name] = plugin;
                 }
             }
         }
@@ -93,11 +94,57 @@ gulp.task('prepareDocs', ['cloneRepositories'], function() {
     .pipe(gulp.dest('dist/ionic-brackets/docs/ngCordova'));
 });
 
-gulp.task('completeDocs', ['prepareDocs'], function() {
+gulp.task('cloneIonicSite', ['mktmp'], function() {
+    var deferred = Q.defer();
+    
+    git.clone('https://github.com/driftyco/ionic-site',  {cwd: 'tmp'}, function (err) {
+        if (err) deferred.reject(err);
+        deferred.resolve();
+    });
+    
+    return deferred.promise;
+});
+
+gulp.task('prepareIonicSite', ['cloneIonicSite'], function() {
+    return gulp.src(['tmp/ionic-site/docs/api/object/*/*', 
+                     'tmp/ionic-site/docs/api/provider/*/*',
+                     'tmp/ionic-site/docs/api/directive/*/*',
+                     'tmp/ionic-site/docs/api/service/*/*'])
+    .pipe(tap(function(file) {
+        if (path.extname(file.path) === '.md') {
+            var data = file.contents.toString();
+
+            var lines = data.split("---")[1].split("\r\n");
+            var doc = {}
+            var dir = path.dirname(file.path);
+            doc.path = dir.substring(dir.lastIndexOf(path.sep) + 1);
+
+            lines.forEach(function(line) {
+                var line = line.split(": ");
+
+                if (line.length > 0) {
+                    if (line[0] == "doc") {
+                        doc.title = JSON.parse(line[1].trim());
+                    } else if (line[0] == "docType") {
+                        doc.type = JSON.parse(line[1]);
+                    }
+                }
+            });
+
+            data = data.substring(data.indexOf('</h1>') + 5).replace(/{% include codepen\.html.+%}/g, "");
+            file.contents = new Buffer(data);
+            
+            docs.ionicDocs[doc.title] = doc;
+        }
+    }))
+    .pipe(gulp.dest('dist/ionic-brackets/docs/ionic'));
+});
+
+gulp.task('completeDocs', ['prepareNgCordova', 'prepareIonicSite'], function() {
     del(['tmp']);
     var deferred = Q.defer();
     
-    fs.writeFile("dist/ionic-brackets/docs/ngCordova/plugins.json", JSON.stringify(ngCordovaPlugins, null, 4), {}, function(err) {
+    fs.writeFile("dist/ionic-brackets/docs/docs.json", JSON.stringify(docs, null, 4), {}, function(err) {
         if (err) deferred.reject(err);
         deferred.resolve();
     });

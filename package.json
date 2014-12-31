@@ -1,7 +1,7 @@
 {
   "name": "ionic-brackets",
   "title": "ionic-brackets",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "description": "A Brackets extension for developing mobile applications using Ionic framework",
   "homepage": "https://github.com/ozsay/ionic-brackets",
   "main": "main.js",
