@@ -70,7 +70,7 @@ Adds ngCordova to your project:
 3. Adds a dependency to the main `app.js` file - example: `angular.module('myApp', ['ngCordova'])`.
 
 ### Quick docs
-While developing, you can see the official docs of ngCordova plugins using quick docs key binding (defaulting to `ctrl+k`).
+While developing, you can see the official docs of Ionic components or ngCordova plugins using quick docs key binding (defaulting to `ctrl+k`).
 
 
 ## Contributing
